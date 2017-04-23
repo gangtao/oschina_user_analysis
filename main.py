@@ -171,10 +171,6 @@ def main():
     worker.init()
     worker.start()
 
-    for i in range(COUNT):
-        puller = Scarper("oschina_scraper_{}".format(i), queue)
-        puller.start()
-
     # http://stackoverflow.com/questions/4136632/ctrl-c-i-e-keyboardinterrupt-to-kill-threads-in-python
     while True:
         worker.join(600)
