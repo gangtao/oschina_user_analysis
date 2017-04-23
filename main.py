@@ -14,9 +14,9 @@ fileConfig('logging_config.ini')
 logger = logging.getLogger()
 global IS_TERM
 
-
 BASE_URL = "http://my.oschina.net"
 SIMU_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36'
+COUNT = 5
 
 headers = {'User-Agent': SIMU_AGENT}
 
@@ -93,14 +93,14 @@ def get_user_info(url):
 
 
 class Scarper(threading.Thread):
-    def __init__(self, threadName):
+    def __init__(self, threadName, queue):
         super(Scarper, self).__init__(name=threadName)
         self._stop = False
 
         self._base_url = BASE_URL
         self._base_user = "masokol"
         self._check_point = dict()
-        self._task_queue = Queue.Queue()
+        self._task_queue = queue
 
     def _pull(self, url):
         user = get_user_info(url)
@@ -166,9 +166,14 @@ def main():
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
-    worker = Scarper("oschina_scraper")
+    queue = Queue.Queue()
+    worker = Scarper("oschina_scraper", queue)
     worker.init()
     worker.start()
+
+    for i in range(COUNT):
+        puller = Scarper("oschina_scraper_{}".format(i), queue)
+        puller.start()
 
     # http://stackoverflow.com/questions/4136632/ctrl-c-i-e-keyboardinterrupt-to-kill-threads-in-python
     while True:
